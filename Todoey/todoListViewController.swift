@@ -11,9 +11,15 @@ import UIKit
 class todoListViewController: UITableViewController {
     
     var itemArray = ["Find Mike" , "Buy Eggos", "Destroy Demegorgon"]
+    
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
+            itemArray = items
+        }
         
     }
     
@@ -63,6 +69,7 @@ class todoListViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
             //what will happen when user clicks the Add Item button on my UIAlert
             self.itemArray.append(textField.text!)
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
             self.tableView.reloadData() //it is not working as it should if I do not have .reloadData() in my code, add it every time if I want to see new stuff added to my itemArray
         }
         alert.addTextField { (alertTextField) in
@@ -76,6 +83,8 @@ class todoListViewController: UITableViewController {
         
         present(alert, animated: true, completion: nil)
     }
+    
+    
     
     
 }
