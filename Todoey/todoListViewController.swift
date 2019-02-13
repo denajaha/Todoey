@@ -10,7 +10,7 @@ import UIKit
 
 class todoListViewController: UITableViewController {
     
-    let itemArray = ["Find Mike" , "Buy Eggos", "Destroy Demegorgon"]
+    var itemArray = ["Find Mike" , "Buy Eggos", "Destroy Demegorgon"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,6 +50,31 @@ class todoListViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
         
         
+    }
+    
+    //MARK - Add new Items
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add New Todoey Item", message: "", preferredStyle: .alert)
+        //button to press when I am done with writing my todo list item
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+            //what will happen when user clicks the Add Item button on my UIAlert
+            self.itemArray.append(textField.text!)
+            self.tableView.reloadData() //it is not working as it should if I do not have .reloadData() in my code, add it every time if I want to see new stuff added to my itemArray
+        }
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new item"
+            print(alertTextField.text!) //kreiranje bijelog polja gdje kucam new item
+            textField = alertTextField
+        }
+        alert.addAction(action) //startovanje alerta koji sam gore kodirao
+        
+        
+        
+        present(alert, animated: true, completion: nil)
     }
     
     
