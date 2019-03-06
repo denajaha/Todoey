@@ -8,11 +8,15 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class todoListViewController: UITableViewController {
+class todoListViewController: SwipeTableTableViewController {
     
     var todoItems : Results<Item>?
     let realm = try! Realm()
+    
+    @IBOutlet weak var searchBar: UISearchBar!
+    
     var selectedCategory : Category? {
         //posto je selectedCategory nil dok se ne klikne na celiju, zato stavljam kao optional...... a didSet radi samo i iskljucivo nakon sto sam kliknuo na celiju
         didSet {
@@ -27,15 +31,41 @@ class todoListViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-     print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        
+    tableView.separatorStyle = .none
+    }
     
-    
+    override func viewWillAppear(_ animated: Bool) {
+        title = selectedCategory?.name
+        guard let colourHex = selectedCategory?.colour else {
+            fatalError()
+        }
         
-//        if let items = defaults.array(forKey: "TodoListArray") as? [String] {
-//            itemArray = items
-//        }
-//
+        updateNavbar(withHexCode: colourHex)
+            
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        
+        updateNavbar(withHexCode: "1D9BF6")
+    }
+    
+    //MARK: - Nav Bar setup methods
+    func updateNavbar(withHexCode colourHexCode : String) {
+        guard let navBar = navigationController?.navigationBar
+            else {
+                fatalError("navigation controller does not exist")
+        }
+        guard let navBarColour = UIColor(hexString: colourHexCode)
+            else {
+                fatalError()
+        }
+        //background of the navigation bar
+        navBar.barTintColor = navBarColour
+        //addButton and Todoey text colour
+        navBar.tintColor = ContrastColorOf(navBarColour, returnFlat: true)
+        navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(navBarColour, returnFlat: true)]
+        searchBar.barTintColor = navBarColour
+        
     }
     
     //MARK - Tableview Datasource Methods
@@ -47,22 +77,24 @@ class todoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-       let cell =  tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+       let cell =  super.tableView(tableView, cellForRowAt: indexPath)
         
         if let item = todoItems?[indexPath.row] {
             
             cell.textLabel?.text = item.title
+            
+            if let colour = UIColor(hexString: selectedCategory!.colour)?.darken(byPercentage: (CGFloat(indexPath.row) / CGFloat(todoItems!.count))) {
+                
+                cell.backgroundColor = colour
+                
+                cell.textLabel?.textColor = ContrastColorOf(colour, returnFlat: true)
+            }
+            
             //Ternary operator ==>
             //  value = condition ? valueIfTrue : valueIfFalse
             
             cell.accessoryType = item.done == true ? .checkmark : .none
-            // ovaj ternarni mijenja if else koji je dole napisan
-            //        if item.done == true {
-            //            cell.accessoryType = .checkmark
-            //        }
-            //        else {
-            //            cell.accessoryType = .none
-            //        }
+           
         }
         else {
             cell.textLabel?.text = "No Items Added"
@@ -161,6 +193,20 @@ class todoListViewController: UITableViewController {
 
 
         tableView.reloadData()
+    }
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let item = todoItems?[indexPath.row] {
+            do {
+                try realm.write {
+                        realm.delete(item)
+                }
+            }
+            catch {
+                print("error deleting item \(error)")
+            }
+            
+        }
     }
    
 

@@ -24,14 +24,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             _ = try Realm()
         }
         catch {
-            print("Error initialising new real, \(error)")
+            print("Error initialising new realm, \(error)")
         }
-        
-        
-        
-        
-        
-        
         return true
     }
 }
